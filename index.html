@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webmap 201</title>
+    <link rel="stylesheet" href="src/leaflet.css">
+    <link rel="stylesheet" href="src/css/bootstrap.css">
+    <link rel="stylesheet" href="src/plugins/L.Control.Pan.css">
+    <link rel="stylesheet" href="src/plugins/L.Control.Zoomslider.css">
+    <link rel="stylesheet" href="src/plugins/L.Control.MousePosition.css">
+    <link rel="stylesheet" href="src/plugins/Leaflet.PolylineMeasure.css">
+    <link rel="stylesheet" href="src/plugins/easy-button.css">
+    <link rel="stylesheet" href="src/plugins/L.Control.Sidebar.css">
+    <link rel="stylesheet" href="src/plugins/leaflet-opencage/src/css/L.Control.OpenCageSearch.css">
+    
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    
+    <script src="src/leaflet-src.js"></script>
+    <script src="src/jquery-3.3.0.min.js"></script>
+    <script src="src/plugins/L.Control.Pan.js"></script>
+    <script src="src/plugins/L.Control.Zoomslider.js"></script>
+    <script src="src/plugins/L.Control.MousePosition.js"></script>
+    <script src="src/plugins/Leaflet.PolylineMeasure.js"></script>
+    <script src="src/plugins/easy-button.js"></script>
+    <script src="src/plugins/L.Control.Sidebar.js"></script>
+    <script src="src/plugins/leaflet-opencage/src/js/L.Control.OpenCageSearch.js"></script>
+    <script src="src/plugins/leaflet-providers.js"></script>
+    
+    
+    <style>
+        #mapdiv {
+            height:100vh;
+        }
+    </style>
+</head>
+<body>
+   <div class="container-fluid">
+        <div class="row">
+            <div id="side-bar">
+               <button id='btnLocate' class='btn btn-primary btn-block'>Locate</button>
+               <button id='btnZocalo'class='btn btn-primary btn-block'>Zoom to Zocalo</button>
+                <br>
+                <h6>Zoom level: <span id='zoom-level'></span></h6>
+                <h6>Map Center: <span id='map-center'></span></h6>
+                <h6>Mouse location: <span id='mouse-location'></span></h6>
+                <button id='btnMuseo'class='btn btn-primary btn-block'>Zoom to Museo</button>
+                <h6>Image Opacity: <span id='image-opacity'>0.5</span></h6>
+                <input type='range' id='sldOpacity' min='0' max='1' step='0.1' value='0.5'>
+            </div>
+            <div id="mapdiv" class="col-md-12"></div>
+    
+            <script>
+                var mymap;
+                var lyrOSM;
+                var lyrWatercolor;
+                var lyrTopo;
+                var lyrImagery;
+                var lyrOutdoors;
+                var lyrSea;
+                var lyrChapultepec;
+                
+                var mrkCurrentLocation;
+                var mrkMuseo;
+                
+                var popZocalo;
+//                var popExample;
+                
+                var ctlZoom;
+                var ctlAttribution;
+                var ctlScale;
+                var ctlPan;
+                var ctlZoomslider;
+                var ctlMouseposition;
+                var ctlPolylinemeasure;
+                var ctlEasybutton;
+                var ctlSidebar;
+                var ctlSearch;
+                var ctlLayers;
+                
+                var objBasemaps;
+                var objOverlays;
+
+
+                // position map - jquery
+                $(document).ready(function(){
+                    mymap = L.map('mapdiv', {
+                        center:[19.4, -99.2], 
+                        zoom:13,
+                        zoomControl:false,
+//                        dragging:false,
+//                        minZoom:10,
+//                        maxZoom:14,
+                        attributionControl:false
+                    });
+                    
+                    // Native method to link map
+//                   lyrOSM = L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png');
+//                    mymap.addLayer(lyrOSM);
+                    
+                    // Leaflet-providers method to link map
+                    lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
+                    lyrWatercolor = L.tileLayer.provider('Stamen.Watercolor');
+                    lyrTopo = L.tileLayer.provider('OpenTopoMap');
+                    lyrImagery = L.tileLayer.provider('Esri.WorldImagery');
+                    lyrOutdoors = L.tileLayer.provider('Thunderforest.Outdoors');
+                    
+                    mymap.addLayer(lyrOSM);
+                    
+                    
+                    lyrChapultepec = L.imageOverlay('img/chapultepec.png', [[19.42993, -99.20843], [19.40621, -99.17453]], {opacity:0.5}).addTo(mymap);
+                    lyrSea = L.tileLayer.provider('OpenSeaMap').addTo(mymap);
+                    
+                    
+                    // warning: to use thunderforest maps (eg. here: 
+                    // Outdoors), add API in leaflet-providers.js file
+                    objBasemaps = {
+                        "Open Street Maps": lyrOSM,
+                        "Watercolor": lyrWatercolor,
+                        "Topo": lyrTopo,
+                        "Imagery": lyrImagery,
+                        "Outdoors": lyrOutdoors
+                    };
+                    
+                    objOverlays = {
+                        "Chapultepec Image": lyrChapultepec,
+                        "Sea": lyrSea
+                    };
+                    
+                    ctlLayers = L.control.layers(objBasemaps, objOverlays).addTo(mymap);
+                    
+                    
+                    // identifies location every 5 sec - useful for maobile devices on the go                  
+//                    setInterval(function() {
+//                        mymap.locate();
+//                    }, 5000);
+                    
+
+                    // adds mouse position control from plugin
+                    ctlMouseposition = L.control.mousePosition({position:'bottomright'}).addTo(mymap);
+                    
+                    // adds pan control from plugin
+                    ctlPan = L.control.pan().addTo(mymap);
+                    
+                    // adds measure tool from plugin
+                    ctlPolylinemeasure = L.control.polylineMeasure().addTo(mymap);
+                    
+                    // adds a retractable sidebar from plugin, replacing html sidebar
+                    ctlSidebar = L.control.sidebar('side-bar').addTo(mymap);
+                    
+                    // adds a custom button on map from plugin
+                    ctlEasybutton = L.easyButton('fa-exchange-alt', function(){
+                        ctlSidebar.toggle();
+                    }).addTo(mymap);
+                    
+                    // adds an OSM search bar
+                    ctlSearch = L.Control.openCageSearch({key:'cc219c689fa74855bf35a00e0ef96944', limit:10}).addTo(mymap);
+                    
+                    // adds zoom controls manually
+//                   ctlZoom = L.control.zoom({
+//                        zoomInText:'In', 
+//                        zoomOutText:'Out',
+//                        position:'topleft'
+//                    });
+//                    ctlZoom.addTo(mymap);
+                    
+                    // adds zoom slider from plugin
+                    ctlZoomslider = L.control.zoomslider({position:'topright'}).addTo(mymap);
+                    
+                    // adds scale 
+                    ctlScale = L.control.scale({position:'bottomright', imperial:false}).addTo(mymap);
+                    
+                    ctlAttribution = L.control.attribution({position:'bottomleft'}).addTo(mymap);
+                    // adding text or html in attribution
+                    ctlAttribution.addAttribution('OSM');
+                    ctlAttribution.addAttribution('&copy; <a href="http://millermoutain.com">Miller Moutain</a>');
+                    
+                    // creates pop-up
+                    popZocalo = L.popup({maxWidth:200, keepInView:true});
+                    popZocalo.setLatLng([19.43262, -99.13325]);
+                    popZocalo.setContent("<h6>Zocalo</h6><img src='img/zocalo.jpg' width='200px'>");
+                    
+                    // putting the whole sidebar in the popup, incl. buttons
+                    // delete bootstrap class first
+//                    popExample = L.popup();
+//                    popExample.setLatLng([19.4132, -99.1859]);
+//                    popExample.setContent($("#side-bar")[0]);
+//                    popExample.openOn(mymap);
+                    
+                    // adds on click event
+//                   mymap.on('click', function(e){
+//                        console.log(e);
+//                        alert(e.latlng.toString());
+//                        if(e.originalEvent.shiftKey){
+//                            alert(mymap.getZoom());
+//                       } else {
+//                            alert(e.latlng.toString());
+//                        }
+//                    });
+                    
+                    // add a native vector layer
+                    mrkMuseo = L.marker([19.42596, -99.18682], {draggable:true}).addTo(mymap);
+                    mrkMuseo.bindTooltip("Anthropology Museum");
+                    
+                    
+                    // adds marker on right click 
+                    mymap.on('contextmenu', function(e){
+                        var dtCurrentTime = new Date();
+            L.marker(e.latlng).addTo(mymap).bindPopup(e.latlng.toString()+"<br>"+dtCurrentTime.toString());
+                    });
+                    
+                    // adds keypress
+                    mymap.on('keypress', function(e) {
+//                        console.log(e);
+                        if (e.originalEvent.key=="l") {
+                            mymap.locate();
+                        }
+                    });
+                    
+                    // replace marker when location updated
+                    mymap.on('locationfound', function(e) {
+//                        console.log(e);
+                        if (mrkCurrentLocation) {
+                            mrkCurrentLocation.remove();
+                        }
+                        
+                    // simple marker on current location                       
+//                        mrkCurrentLocation = L.circleMarker(e.latlng).addTo(mymap);
+//                        mymap.setView(e.latlng, 18);
+                        
+                    // marker adapted to reflect accurary                        
+                        mrkCurrentLocation = L.circle(e.latlng, {radius:e.accuracy/2}).addTo(mymap);
+                        mymap.setView(e.latlng, 18);
+                    });
+                    
+                    mymap.on('locationError', function(e) {
+                        console.log(e);    
+                        alert("Location was non found");
+                    });
+                    
+                    // adapts variable in sidebar div
+                    mymap.on('zoomend', function() {
+                        $("#zoom-level").html(mymap.getZoom());
+                    });
+                    
+                    // gets map center coord - jquery
+                    mymap.on('moveend', function() {
+                        $("#map-center").html(LatLngToArrayString(mymap.getCenter()));
+                    });
+                    
+                    // gets mouse coord
+                    mymap.on('mousemove', function(e) {
+                        $("#mouse-location").html(LatLngToArrayString(e.latlng));
+                    });
+                    
+                    // change tooltip on mrkMuseo when dragged out of position
+                    mrkMuseo.on('dragend', function(){
+                        mrkMuseo.setTooltipContent("Current Location: "+mrkMuseo.getLatLng().toString()+"<br>"+"Distance to Anthropology Museum: "+mrkMuseo.getLatLng().distanceTo([19.42596, -99.18682]).toFixed(0)+" m.");
+                    });
+                    
+                    // gets current location using Locate btn - jquery
+                    $("#btnLocate").click(function() {
+                        mymap.locate();
+                    });
+                    
+                    // gets Zocalo location using Zoom to Zocalo  btn - jquery
+                    $("#btnZocalo").click(function() {
+                        mymap.setView([19.43262, -99.13325], 17);
+                        mymap.openPopup(popZocalo);
+                    });
+                    
+                    $("#btnMuseo").click(function() {
+                        mymap.setView([19.42596, -99.18682], 17);
+                        mrkMuseo.setLatLng([19.42596, -99.18682]);
+                        mrkMuseo.setTooltipContent("Anthropology Museum");
+                    });
+                    
+                    // event handler for the opacity slider
+                    $("#sldOpacity").on('change', function(){
+                        $("#image-opacity").html(this.value);
+                        lyrChapultepec.setOpacity(this.value);
+                    });
+                    
+                });
+                
+                // javascript function to beautify latlng
+                function LatLngToArrayString(ll) {
+                    return "["+ll.lat.toFixed(5)+", "+ll.lng.toFixed(5)+"]";
+                }
+                
+            </script>
+        </div>
+    </div>  
+</body>
+</html>
+
+
