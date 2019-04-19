@@ -43,29 +43,38 @@
                 <h6>Zoom level: <span id='zoom-level'></span></h6>
                 <h6>Map Center: <span id='map-center'></span></h6>
                 <h6>Mouse location: <span id='mouse-location'></span></h6>
+                <br>
                 <button id='btnMuseo'class='btn btn-primary btn-block'>Zoom to Museo</button>
+                <br>
                 <h6>Image Opacity: <span id='image-opacity'>0.5</span></h6>
                 <input type='range' id='sldOpacity' min='0' max='1' step='0.1' value='0.5'>
+                <br><br>
+                <button id='btnBikeRoute'class='btn btn-primary btn-block'>Zoom to Bike Route</button>
             </div>
             <div id="mapdiv" class="col-md-12"></div>
     
             <script>
                 var mymap;
+                // basemaps
                 var lyrOSM;
                 var lyrWatercolor;
                 var lyrTopo;
                 var lyrImagery;
                 var lyrOutdoors;
-                
+                // layers
                 var lyrSea;
-                var lyrChapultepec;
-                
+                var lyrChapultepec;               
+                // markers
                 var mrkCurrentLocation;
                 var mrkMuseo;
-                
+                // geometries
+                var plnBikeRoute;
+                var plyParks;
+                var fgpChapultepec;
+                // popups
                 var popZocalo;
 //                var popExample;
-                
+                // controls
                 var ctlZoom;
                 var ctlAttribution;
                 var ctlScale;
@@ -77,7 +86,7 @@
                 var ctlSidebar;
                 var ctlSearch;
                 var ctlLayers;
-                
+                // objects
                 var objBasemaps;
                 var objOverlays;
 
@@ -98,6 +107,8 @@
 //                   lyrOSM = L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png');
 //                    mymap.addLayer(lyrOSM);
                     
+                    // basemaps creation
+                    // -----------------
                     // Leaflet-providers method to link map
                     lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
                     lyrWatercolor = L.tileLayer.provider('Stamen.Watercolor');
@@ -106,11 +117,6 @@
                     lyrOutdoors = L.tileLayer.provider('Thunderforest.Outdoors');
                     
                     mymap.addLayer(lyrOSM);
-                    
-                    
-                    lyrChapultepec = L.imageOverlay('img/chapultepec.png', [[19.42993, -99.20843], [19.40621, -99.17453]], {opacity:0.5}).addTo(mymap);
-                    lyrSea = L.tileLayer.provider('OpenSeaMap').addTo(mymap);
-                    
                     
                     // warning: to use thunderforest maps (eg. here: 
                     // Outdoors), add API in leaflet-providers.js file
@@ -122,11 +128,37 @@
                         "Outdoors": lyrOutdoors
                     };
                     
+                    // overlays creation
+                    // -----------------
+                    lyrChapultepec = L.imageOverlay('img/chapultepec.png', [[19.42993, -99.20843], [19.40621, -99.17453]], {opacity:0.5}).addTo(mymap);
+                    lyrSea = L.tileLayer.provider('OpenSeaMap').addTo(mymap);
+                    
+                     // adds a native vector layer
+                    mrkMuseo = L.marker([19.42596, -99.18682], {draggable:true}).addTo(mymap);
+                    mrkMuseo.bindTooltip("Anthropology Museum");
+                    
+                    // adds geometries
+                    plyParks = L.polygon([[
+                        // big polygon
+                        [[19.4068, -99.2015], [19.4166, -99.1803], [19.4299, -99.1825], [19.4191, -99.2056]], 
+                        // 2nd polygon = hole in big polygon
+                        [[19.4216, -99.1853], [19.4217, -99.1843], [19.4241, -99.1848], [19.4245, -99.1872]], 
+                        // 3rd polygon = exterior polygon
+                        [[[19.4042, -99.1895], [19.405, -99.1884], [19.4076, -99.1898], [19.4055, -99.1909]]]
+                    ]], {color:'yellow', fillColor:'yellow', fillOpacity:0.6}).addTo(mymap);
+                                        
+                     plnBikeRoute = L.polyline([[[19.4138, -99.1876], [19.4167, -99.188], [19.4165, -99.1873], [19.4214, -99.1872], [19.4215, -99.1841], [19.4258, -99.1843], [19.4259, -99.1852]], [[19.4215, -99.1865], [19.4251, -99.1881], [19.4246, -99.1843]]], {color:'purple'}).addTo(mymap);
+                    
+                    
                     objOverlays = {
                         "Chapultepec Image": lyrChapultepec,
-                        "Sea": lyrSea
+                        "Sea": lyrSea,
+                        "Museum of Anthropology": mrkMuseo,
+                        "Bike Route": plnBikeRoute,
+                        "Parks": plyParks
                     };
                     
+                    // adds switcher control for basemaps and overlays
                     ctlLayers = L.control.layers(objBasemaps, objOverlays).addTo(mymap);
                     
                     
@@ -198,15 +230,11 @@
 //                        }
 //                    });
                     
-                    // add a native vector layer
-                    mrkMuseo = L.marker([19.42596, -99.18682], {draggable:true}).addTo(mymap);
-                    mrkMuseo.bindTooltip("Anthropology Museum");
-                    
-                    
+                   
                     // adds marker on right click 
                     mymap.on('contextmenu', function(e){
                         var dtCurrentTime = new Date();
-            L.marker(e.latlng).addTo(mymap).bindPopup(e.latlng.toString()+"<br>"+dtCurrentTime.toString());
+            L.marker(e.latlng).addTo(mymap).bindPopup(e.latlng.toString()+"<br>"+dtCurrentTime.toString())
                     });
                     
                     // adds keypress
@@ -237,6 +265,10 @@
                         console.log(e);    
                         alert("Location was non found");
                     });
+                    
+                    
+                    // jquery events handlers
+                    // ----------------------
                     
                     // adapts variable in sidebar div
                     mymap.on('zoomend', function() {
@@ -273,6 +305,11 @@
                         mymap.setView([19.42596, -99.18682], 17);
                         mrkMuseo.setLatLng([19.42596, -99.18682]);
                         mrkMuseo.setTooltipContent("Anthropology Museum");
+                    });
+                    
+                    $("#btnBikeRoute").click(function() {
+                        mymap.fitBounds(plnBikeRoute.getBounds());
+                        
                     });
                     
                     // event handler for the opacity slider
