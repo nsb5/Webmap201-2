@@ -44,6 +44,8 @@
                 <h6>Map Center: <span id='map-center'></span></h6>
                 <h6>Mouse location: <span id='mouse-location'></span></h6>
                 <br>
+                <button id='btnAddMuseo'class='btn btn-secondary btn-block'>Add Museo to Chapultepec Vectors Group</button>
+                <button id='btnColor'class='btn btn-warning btn-block'>Change Color</button>
                 <button id='btnMuseo'class='btn btn-primary btn-block'>Zoom to Museo</button>
                 <br>
                 <h6>Image Opacity: <span id='image-opacity'>0.5</span></h6>
@@ -133,8 +135,9 @@
                     lyrChapultepec = L.imageOverlay('img/chapultepec.png', [[19.42993, -99.20843], [19.40621, -99.17453]], {opacity:0.5}).addTo(mymap);
                     lyrSea = L.tileLayer.provider('OpenSeaMap').addTo(mymap);
                     
+                        // -> objects for fgpChapultepec
                      // adds a native vector layer
-                    mrkMuseo = L.marker([19.42596, -99.18682], {draggable:true}).addTo(mymap);
+                    mrkMuseo = L.marker([19.42596, -99.18682], {draggable:true});
                     mrkMuseo.bindTooltip("Anthropology Museum");
                     
                     // adds geometries
@@ -145,17 +148,17 @@
                         [[19.4216, -99.1853], [19.4217, -99.1843], [19.4241, -99.1848], [19.4245, -99.1872]], 
                         // 3rd polygon = exterior polygon
                         [[[19.4042, -99.1895], [19.405, -99.1884], [19.4076, -99.1898], [19.4055, -99.1909]]]
-                    ]], {color:'yellow', fillColor:'yellow', fillOpacity:0.6}).addTo(mymap);
+                    ]], {color:'yellow', fillColor:'yellow', fillOpacity:0.6});
                                         
-                     plnBikeRoute = L.polyline([[[19.4138, -99.1876], [19.4167, -99.188], [19.4165, -99.1873], [19.4214, -99.1872], [19.4215, -99.1841], [19.4258, -99.1843], [19.4259, -99.1852]], [[19.4215, -99.1865], [19.4251, -99.1881], [19.4246, -99.1843]]], {color:'purple'}).addTo(mymap);
+                     plnBikeRoute = L.polyline([[[19.4138, -99.1876], [19.4167, -99.188], [19.4165, -99.1873], [19.4214, -99.1872], [19.4215, -99.1841], [19.4258, -99.1843], [19.4259, -99.1852]], [[19.4215, -99.1865], [19.4251, -99.1881], [19.4246, -99.1843]]], {color:'purple'});
                     
+                    // groups features together
+                    fgpChapultepec = L.featureGroup([plyParks, plnBikeRoute]).addTo(mymap);
                     
                     objOverlays = {
                         "Chapultepec Image": lyrChapultepec,
-                        "Sea": lyrSea,
-                        "Museum of Anthropology": mrkMuseo,
-                        "Bike Route": plnBikeRoute,
-                        "Parks": plyParks
+                        "Chapultepec Vectors": fgpChapultepec,
+                        "Sea": lyrSea
                     };
                     
                     // adds switcher control for basemaps and overlays
@@ -310,6 +313,22 @@
                     $("#btnBikeRoute").click(function() {
                         mymap.fitBounds(plnBikeRoute.getBounds());
                         
+                    });
+                    
+                    // toggles button to add/remove layer to group
+                    $("#btnAddMuseo").click(function(){
+                        if (fgpChapultepec.hasLayer(mrkMuseo)) {
+                            fgpChapultepec.removeLayer(mrkMuseo);
+                            $("#btnAddMuseo").html("Add Museo to Chapultepec Vectors");
+                        } else {
+                            fgpChapultepec.addLayer(mrkMuseo);
+                            $("#btnAddMuseo").html("Remove Museo from Chapultepec Vectors");
+                        }    
+                    });
+                    
+                    // change color
+                    $("#btnColor").click(function() {
+                        fgpChapultepec.setStyle({color:'purple', fillColor: 'green', fillOpacity: 0.8});
                     });
                     
                     // event handler for the opacity slider
