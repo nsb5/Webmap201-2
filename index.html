@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="src/plugins/easy-button.css">
     <link rel="stylesheet" href="src/plugins/L.Control.Sidebar.css">
     <link rel="stylesheet" href="src/plugins/leaflet-opencage/src/css/L.Control.OpenCageSearch.css">
+    <link rel="stylesheet" href="src/plugins/leaflet-styleeditor/css/Leaflet.StyleEditor.css">
     
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
     
@@ -25,7 +26,46 @@
     <script src="src/plugins/L.Control.Sidebar.js"></script>
     <script src="src/plugins/leaflet-opencage/src/js/L.Control.OpenCageSearch.js"></script>
     <script src="src/plugins/leaflet-providers.js"></script>
+    <script src="src/plugins/leaflet-styleeditor/javascript/Leaflet.StyleEditor.js"></script>
+    <script src="src/plugins/leaflet-styleeditor/javascript/Leaflet.StyleForms.js"></script>
     
+    <!--    ***************  Begin Leaflet.Draw-->    
+        <script src="src/plugins/leaflet-draw/Leaflet.draw.js"></script>
+        <script src="src/plugins/leaflet-draw/Leaflet.Draw.Event.js"></script>
+        <link rel="stylesheet" href="src/plugins/leaflet-draw/leaflet.draw.css"/>
+
+        <script src="src/plugins/leaflet-draw/Toolbar.js"></script>
+        <script src="src/plugins/leaflet-draw/Tooltip.js"></script>
+
+        <script src="src/plugins/leaflet-draw/ext/GeometryUtil.js"></script>
+        <script src="src/plugins/leaflet-draw/ext/LatLngUtil.js"></script>
+        <script src="src/plugins/leaflet-draw/ext/LineUtil.Intersect.js"></script>
+        <script src="src/plugins/leaflet-draw/ext/Polygon.Intersect.js"></script>
+        <script src="src/plugins/leaflet-draw/ext/Polyline.Intersect.js"></script>
+        <script src="src/plugins/leaflet-draw/ext/TouchEvents.js"></script>
+
+        <script src="src/plugins/leaflet-draw/draw/DrawToolbar.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Feature.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.SimpleShape.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Polyline.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Circle.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Marker.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Polygon.js"></script>
+        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Rectangle.js"></script>
+
+
+        <script src="src/plugins/leaflet-draw/edit/EditToolbar.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/EditToolbar.Edit.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/EditToolbar.Delete.js"></script>
+
+        <script src="src/plugins/leaflet-draw/Control.Draw.js"></script>
+
+        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Poly.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/Edit.SimpleShape.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Circle.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Rectangle.js"></script>
+        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Marker.js"></script>        
+<!--    **************  End of Lealet Draw-->
     
     <style>
         #mapdiv {
@@ -73,6 +113,7 @@
                 var plnBikeRoute;
                 var plyParks;
                 var fgpChapultepec;
+                var fgpDrawnItems;
                 // popups
                 var popZocalo;
 //                var popExample;
@@ -88,6 +129,8 @@
                 var ctlSidebar;
                 var ctlSearch;
                 var ctlLayers;
+                var ctlDraw;
+                var ctlStyle;
                 // objects
                 var objBasemaps;
                 var objOverlays;
@@ -154,10 +197,13 @@
                     
                     // groups features together
                     fgpChapultepec = L.featureGroup([plyParks, plnBikeRoute]).addTo(mymap);
+                    fgpDrawnItems = new L.FeatureGroup();
+                    mymap.addLayer(fgpDrawnItems);
                     
                     objOverlays = {
                         "Chapultepec Image": lyrChapultepec,
                         "Chapultepec Vectors": fgpChapultepec,
+                        "Drawn Items": fgpDrawnItems,
                         "Sea": lyrSea
                     };
                     
@@ -209,6 +255,25 @@
                     // adding text or html in attribution
                     ctlAttribution.addAttribution('OSM');
                     ctlAttribution.addAttribution('&copy; <a href="http://millermoutain.com">Miller Moutain</a>');
+                    
+                    // manages draw toolbar
+                     ctlStyle = L.control.styleEditor({position:'topright'}).addTo(mymap);
+                    
+                    ctlDraw = new L.Control.Draw({
+                        draw:{
+                            circle:false
+                        },
+                        edit:{
+                            featureGroup:fgpDrawnItems
+                        }
+                    });
+                    ctlDraw.addTo(mymap);
+                
+                    mymap.on('draw:created', function(e){
+                        console.log(e);
+                        fgpDrawnItems.addLayer(e.layer);
+                        alert(JSON.stringify(e.layer.toGeoJSON()));
+                    });
                     
                     // creates pop-up
                     popZocalo = L.popup({maxWidth:200, keepInView:true});
