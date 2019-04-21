@@ -252,8 +252,6 @@
 		script.type = 'text/javascript';
 		script.src = url + L.Util.getParamString(params);
 		script.id = callbackId;
-		script.addEventListener('error', function() { callback({results: []}); });
-		script.addEventListener('abort', function() { callback({results: []}); });
 		document.getElementsByTagName('head')[0].appendChild(script);
 	};
 
@@ -271,16 +269,11 @@
 		},
 
 		geocode: function(query, cb, context) {
-      var proximity = {};
-      if (context && context._map && context._map.getCenter()) {
-        var center = context._map.getCenter();
-        proximity.proximity = center.lat + "," + center.lng;
-      }
 			L.Control.OpenCageSearch.jsonp(this.options.serviceUrl + 'json/', L.extend({
 				q: query,
 				limit: this.options.limit,
 				key: this.options.key
-			}, proximity, this.options.geocodingQueryParams),
+			}, this.options.geocodingQueryParams),
 			function(data) {
 				var results = [];
 				for (var i=data.results.length - 1; i >= 0; i--) {
