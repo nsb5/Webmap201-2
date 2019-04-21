@@ -215,7 +215,7 @@
 //                    var clrNest = 'deeppink';
 //                } else {
 //                    var clrNest = 'green';
-//                }
+//               }
 //                return L.circle(latlng, {radius:804, color:clrNest,fillColor:'green', fillOpacity:0.5}).bindTooltip("<h4>Eagle Nest: "+att.nest_id+"</h4>Status: "+att.status);
                 if (att.status=='ACTIVE NEST') {
                     var icnEagle = icnMKBird;
@@ -224,6 +224,7 @@
                 }
                 return L.marker(latlng, {icon:icnEagle});
             }
+            
             
             function returnRaptorMarker(json, latlng){
                 var att = json.properties;
