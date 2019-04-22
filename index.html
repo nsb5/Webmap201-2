@@ -115,7 +115,7 @@
                 icnLAMtree = L.AwesomeMarkers.icon({icon:'tree-conifer', markerColor:'green'});
                 icnLAMbird = L.AwesomeMarkers.icon({icon:'twitter', markerColor:'green', iconColor:'#FF0000', prefix:'fa', spin:true});
                 icnMKBird = L.icon.mapkey({icon:'school', color:"#880000", background:'green'});
-                icnMKtree = L.icon.mapkey({icon:'tree_cinofer', color:"#880000", background:'#00FF00', size:50, borderRadius:5});
+                icnMKtree = L.icon.mapkey({icon:'tree_cinofer', color:"#880000", background:'#00FF00', size:25, borderRadius:3});
                 
                 mymap = L.map('mapdiv', {center:[19.4, -99.2], zoom:13, zoomControl:false, attributionControl:false});
                 lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
@@ -218,9 +218,13 @@
 //               }
 //                return L.circle(latlng, {radius:804, color:clrNest,fillColor:'green', fillOpacity:0.5}).bindTooltip("<h4>Eagle Nest: "+att.nest_id+"</h4>Status: "+att.status);
                 if (att.status=='ACTIVE NEST') {
+//                    var icnEagle = icnRedSprite;
                     var icnEagle = icnMKBird;
+//                    var icnEagle = icnLAMbird;
                 } else {
+//                    var icnEagle = icnVioletSprite;
                     var icnEagle = icnMKtree;
+//                    var icnEagle = icnLAMtree;
                 }
                 return L.marker(latlng, {icon:icnEagle});
             }
